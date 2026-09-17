@@ -25,6 +25,23 @@ tardan de media en contestarme» o solo «en qué estado está esto ahora», y s
 candidatura de una persona —con su salario y sus notas— puede acabar en la
 pantalla de otra.
 
+## Ejemplo
+
+Ejemplos reales tomados de docs/peticiones.http, con una respuesta ilustrativa (los valores como el token o el id cambian en cada ejecucion real):
+
+```bash
+curl -X POST localhost:3000/auth/registro -H "Content-Type: application/json" -d '{"email":"ana@ejemplo.com","contrasena":"una-contrasena-larga","nombre":"Ana"}'
+# { "acceso": "eyJhbGciOiJIUzI1NiJ9...", "usuario": { "id": "8f2c...", "nombre": "Ana" } }
+
+curl -X POST localhost:3000/postulaciones -H "Authorization: Bearer $ACCESO" -H "Content-Type: application/json" -d '{"empresa":{"nombre":"Telefonica","sector":"Telecomunicaciones"},"puesto":"Desarrollador backend junior","fuente":"linkedin","modalidad":"hibrido","ubicacion":"Madrid","salario_min":24000,"salario_max":30000}'
+# { "postulacion": { "id": "3af9...", "estado": "enviada", "puesto": "Desarrollador backend junior" } }
+
+curl localhost:3000/estadisticas -H "Authorization: Bearer $ACCESO"
+# { "embudo": { "enviada": 1, "entrevista": 0, "oferta": 0 }, "tiempo_respuesta_medio_dias": null, "sin_respuesta": 1 }
+```
+
+Mas ejemplos listos para copiar en docs/peticiones.http.
+
 ## Lo que más me interesa que se mire
 
 **El estado no es una columna que se sobrescribe, es una tabla de eventos.** Lo
