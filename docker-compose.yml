@@ -1,0 +1,24 @@
+# PostgreSQL para desarrollo local. Levanta con:  docker compose up -d
+#
+# La versión está FIJADA (16-alpine, no "latest"): con `latest`, el día que
+# salga PostgreSQL 17 tu máquina y el servidor dejan de correr lo mismo sin que
+# nadie haya tocado nada.
+services:
+  bd:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postulaciones
+      POSTGRES_PASSWORD: desarrollo
+      POSTGRES_DB: postulaciones
+    ports:
+      - '5432:5432'
+    volumes:
+      - datos:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postulaciones']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  datos:

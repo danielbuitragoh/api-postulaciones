@@ -1,0 +1,58 @@
+# Integración continua.
+#
+# Levanta un PostgreSQL de verdad como servicio: los tests de esta API
+# comprueban restricciones que viven en la base (índices únicos, `check`,
+# claves foráneas, la vista de estado). Contra un doble pasarían igual de
+# verdes con la autorización borrada, así que aquí no hay dobles.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # Versión fijada, igual que en docker-compose: si CI corre otra
+        # versión que tu máquina, el verde de aquí no dice nada de allí.
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postulaciones
+          POSTGRES_PASSWORD: pruebas
+          POSTGRES_DB: postulaciones_prueba
+        ports: ['5432:5432']
+        # Sin healthcheck, los tests arrancan antes que la base y fallan
+        # de forma intermitente: el peor fallo posible en CI.
+        options: >-
+          --health-cmd "pg_isready -U postulaciones"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` y no `npm install`: instala exactamente lo del lock.
+      # `npm install` puede resolver versiones nuevas y entonces CI no está
+      # probando el mismo árbol de dependencias que vas a desplegar.
+      - run: npm ci
+
+      - name: Comprobar tipos
+        run: npm run tipos
+
+      - name: Tests
+        run: npm test
+        env:
+          DATABASE_URL_PRUEBA: postgresql://postulaciones:pruebas@localhost:5432/postulaciones_prueba
+
+      - name: Compilar
+        run: npm run build

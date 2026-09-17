@@ -1,0 +1,50 @@
+### Ejemplos listos para ejecutar (REST Client de VS Code, o copiar a curl).
+@host = http://localhost:3000
+
+### Registro
+# @name registro
+POST {{host}}/auth/registro
+Content-Type: application/json
+
+{ "email": "ana@ejemplo.com", "contrasena": "una-contraseña-larga", "nombre": "Ana" }
+
+###
+@acceso = {{registro.response.body.acceso}}
+
+### Alta de postulación creando la empresa sobre la marcha
+# @name alta
+POST {{host}}/postulaciones
+Authorization: Bearer {{acceso}}
+Content-Type: application/json
+
+{
+  "empresa": { "nombre": "Telefónica", "sector": "Telecomunicaciones" },
+  "puesto": "Desarrollador backend junior",
+  "fuente": "linkedin",
+  "modalidad": "hibrido",
+  "ubicacion": "Madrid",
+  "salario_min": 24000,
+  "salario_max": 30000
+}
+
+###
+@id = {{alta.response.body.postulacion.id}}
+
+### Avanzar el proceso
+POST {{host}}/postulaciones/{{id}}/eventos
+Authorization: Bearer {{acceso}}
+Content-Type: application/json
+
+{ "tipo": "entrevista", "nota": "Técnica de 45 min" }
+
+### Detalle con historial completo
+GET {{host}}/postulaciones/{{id}}
+Authorization: Bearer {{acceso}}
+
+### Listado filtrado
+GET {{host}}/postulaciones?estado=entrevista&limite=20
+Authorization: Bearer {{acceso}}
+
+### Estadísticas
+GET {{host}}/estadisticas
+Authorization: Bearer {{acceso}}
