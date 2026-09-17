@@ -174,3 +174,14 @@ DATABASE_URL_PRUEBA=postgresql://…/postulaciones_prueba npm test
 ## Licencia
 
 MIT · [Daniel Buitrago](https://github.com/danielbuitragoh)
+
+
+---
+
+## English
+
+A REST API for tracking job applications, with a full event history instead of a single status column that gets overwritten, and real response-time statistics.
+
+Node, TypeScript, Express 5, PostgreSQL, Zod, Argon2id and Vitest, with 46 tests running against a real PostgreSQL database, no mocked pool. Every state change is a row in an events table that is never overwritten, so questions like how long companies take to answer, or how many of 40 applications reached an interview, actually have answers. Passwords are hashed with Argon2id at OWASP's recommended parameters, access tokens are short-lived JWTs with an explicit algorithm allowlist (there is a test that specifically tries to forge an alg none token), refresh tokens are hashed and rotated on every use, and authorization is enforced in the SQL WHERE clause, never in application code. There are eight route-by-route authorization tests, and two of them were verified by deliberately deleting the user filter and watching the suite turn red.
+
+Code and comments are in Spanish. Ready-to-run request examples are in docs/peticiones.http.
