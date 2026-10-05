@@ -56,3 +56,9 @@ jobs:
 
       - name: Compilar
         run: npm run build
+
+      # `tsc` no copia los .sql: sin este paso de build la API compilaba
+      # bien pero no arrancaba en producción. Se comprueba aquí para que
+      # vuelva a ponerse rojo si alguien toca el script de build.
+      - name: Comprobar que las migraciones llegan a dist
+        run: test -f dist/bd/migraciones/001_inicial.sql
