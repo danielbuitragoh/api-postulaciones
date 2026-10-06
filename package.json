@@ -4,7 +4,7 @@
   "description": "API REST de seguimiento de postulaciones de empleo, con historial de eventos y estadisticas de respuesta",
   "scripts": {
     "dev": "tsx watch src/servidor.ts",
-    "build": "tsc",
+    "build": "tsc && node scripts/copiar-migraciones.mjs",
     "start": "node dist/servidor.js",
     "test": "vitest run",
     "test:ver": "vitest",

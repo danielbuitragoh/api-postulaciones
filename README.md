@@ -188,6 +188,24 @@ createdb postulaciones_prueba
 DATABASE_URL_PRUEBA=postgresql://…/postulaciones_prueba npm test
 ```
 
+## En producción
+
+Desplegada en **Vercel** con **PostgreSQL de Neon**, las dos en plan gratuito. Allí no hay un proceso que llame a `listen`: cada petición la atiende la función de [`api/index.js`](api/index.js), que monta la misma app compilada en `dist/`, y [`vercel.json`](vercel.json) le manda todas las rutas. `src/servidor.ts` sigue siendo el arranque en local o en cualquier servidor normal (`npm run build && npm start`).
+
+Variables de entorno en Vercel:
+
+| Variable | De dónde sale |
+|---|---|
+| `DATABASE_URL` | La añade sola la integración de Neon al conectar la base al proyecto |
+| `JWT_SECRETO` | Generada con `openssl rand -base64 48`; nunca la de `.env.ejemplo` |
+| `ORIGENES` | `https://danielbuitragoh.github.io`, donde vive el [gestor](https://github.com/danielbuitragoh/gestor-postulaciones) |
+| `NODE_ENV` | `produccion` |
+
+Dos cosas que salieron al desplegar:
+
+- **`tsc` no copia los `.sql`.** La API compilaba sin errores pero no arrancaba: buscaba las migraciones en `dist/bd/migraciones` y no estaban. En desarrollo no se notaba porque `npm run dev` ejecuta desde `src/`. Ahora `npm run build` las copia, y CI comprueba que lleguen.
+- **Un fallo de conexión al arrancar tumbaba la instancia.** Las migraciones se lanzan al cargar la función, antes de que llegue ninguna petición; si la base no respondía, Node trataba ese rechazo como no capturado y mataba el proceso. Ahora el error se guarda y lo recibe cada petición.
+
 ## Licencia
 
 MIT · [Daniel Buitrago](https://github.com/danielbuitragoh)
