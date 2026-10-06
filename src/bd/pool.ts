@@ -22,7 +22,7 @@ export type Pool = pg.Pool;
    de atajo que rompe otra cosa meses después. */
 
 export function crearPool(urlBd: string): Pool {
-  return new Pool({
+  const pool = new Pool({
     connectionString: urlBd,
 
     /* Zona horaria fijada a UTC en la conexión, no heredada del sistema.
@@ -34,8 +34,23 @@ export function crearPool(urlBd: string): Pool {
 
     max: 10,
     idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 5_000,
+
+    /* 15 s y no 5: en producción la base es Neon, que suspende el cómputo
+       tras unos minutos sin uso y tarda en despertar. Con 5 s, la primera
+       petición después de un rato parado fallaba con "connection timeout"
+       aunque la base estuviera bien. */
+    connectionTimeoutMillis: 15_000,
   });
+
+  /* Sin este manejador, si la base corta una conexión que está esperando en
+     el pool (Neon lo hace al suspenderse), `pg` emite un 'error' sin oyente
+     y Node tumba el proceso entero. Esa conexión se descarta sola; la
+     siguiente petición abre otra. */
+  pool.on('error', (error) => {
+    console.error('[pool] conexión inactiva cerrada por la base:', error.message);
+  });
+
+  return pool;
 }
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
