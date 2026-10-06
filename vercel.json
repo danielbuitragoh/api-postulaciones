@@ -1,12 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "npm run build && mkdir -p sin-estaticos",
-  "outputDirectory": "sin-estaticos",
+  "buildCommand": "npm run build",
+  "outputDirectory": "estaticos",
   "functions": {
     "api/index.js": {
       "includeFiles": "dist/**"
     }
   },
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
 }
