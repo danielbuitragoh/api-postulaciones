@@ -44,9 +44,14 @@ export class Prohibido extends ErrorApi {
  * existe. Con 404 el atacante no distingue "no existe" de "no es tuyo", que es
  * exactamente lo que debe ver.
  */
+/* Los recursos de esta API que son femeninos. Sin esto el mensaje decía
+   "Postulación no encontrado" o "Ruta no encontrado", y es texto que el
+   gestor puede enseñar tal cual al usuario. */
+const FEMENINOS = new Set(['Ruta', 'Empresa', 'Postulación']);
+
 export class NoEncontrado extends ErrorApi {
   constructor(recurso = 'Recurso') {
-    super(`${recurso} no encontrado`, 404, 'no_encontrado');
+    super(`${recurso} no ${FEMENINOS.has(recurso) ? 'encontrada' : 'encontrado'}`, 404, 'no_encontrado');
   }
 }
 
