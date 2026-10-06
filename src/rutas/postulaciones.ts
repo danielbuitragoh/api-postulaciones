@@ -119,8 +119,8 @@ export function rutasPostulaciones(pool: Pool): Router {
          del SELECT la salvaría, pero las estadísticas contarían mal. */
       await cliente.query(
         `insert into eventos (postulacion_id, tipo, ocurrido_en)
-         values ($1, 'postulada', coalesce($2::date, current_date))`,
-        [id, d.postulado_en ?? null],
+         values ($1, $3, coalesce($2::date, current_date))`,
+        [id, d.postulado_en ?? null, d.estado_inicial ?? 'postulada'],
       );
 
       await cliente.query('commit');
@@ -227,6 +227,21 @@ export function rutasPostulaciones(pool: Pool): Router {
        returning id, tipo, nota, ocurrido_en`,
       [id, d.tipo, d.nota ?? null, d.ocurrido_en ?? null],
     );
+
+    /* La PRIMERA vez que una postulación pasa a 'postulada' (la que se creó
+       como 'guardada'), la fecha de postulación pasa a ser la del envío: el
+       tiempo de respuesta se mide desde que la empresa recibió la candidatura,
+       no desde que se guardó la oferta. Si ya tenía un 'postulada' antes
+       (alguien devuelve la tarjeta a "Enviadas"), la fecha no se toca. */
+    if (d.tipo === 'postulada') {
+      await pool.query(
+        `update postulaciones set postulado_en = ($2::timestamptz at time zone 'UTC')::date
+          where id = $1
+            and not exists (select 1 from eventos
+                             where postulacion_id = $1 and tipo = 'postulada' and id <> $3)`,
+        [id, rows[0].ocurrido_en, rows[0].id],
+      );
+    }
 
     res.status(201).json({ evento: rows[0] });
   });

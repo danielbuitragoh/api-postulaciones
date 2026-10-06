@@ -97,4 +97,33 @@ describe('estadísticas', () => {
       { mes: '2026-02', n: 1 },
     ]);
   });
+
+  /* Una oferta guardada (la que manda el bot con /guardar) todavía no se ha
+     enviado. Si contase como enviada desde que se guardó, el embudo y el
+     tiempo de respuesta mentirían. */
+  it('una oferta guardada no cuenta como enviada hasta que se envía', async () => {
+    const a = await crearPostulacion(c.app, yo, {
+      empresa: { nombre: 'Uno' }, estado_inicial: 'guardada', postulado_en: '2026-01-01',
+    });
+
+    let r = await request(c.app).get('/estadisticas').set(yo.cabecera);
+    expect(r.body.embudo.postuladas).toBe(0);
+
+    await evento(a, 'postulada', '2026-01-05T00:00:00Z');
+    await evento(a, 'respuesta', '2026-01-08T00:00:00Z');
+
+    r = await request(c.app).get('/estadisticas').set(yo.cabecera);
+    expect(r.body.embudo.postuladas).toBe(1);
+    // 3 días desde que se envió, no 7 desde que se guardó.
+    expect(r.body.respuesta.dias_media).toBeCloseTo(3, 0);
+  });
+
+  it('volver a "enviada" desde otra fase no cambia la fecha de envío', async () => {
+    const a = await crearPostulacion(c.app, yo, { empresa: { nombre: 'Uno' }, postulado_en: '2026-01-01' });
+    await evento(a, 'respuesta', '2026-01-11T00:00:00Z');
+    await evento(a, 'postulada', '2026-02-01T00:00:00Z');
+
+    const r = await request(c.app).get('/estadisticas').set(yo.cabecera);
+    expect(r.body.respuesta.dias_media).toBeCloseTo(10, 0);
+  });
 });
