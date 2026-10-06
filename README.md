@@ -162,7 +162,7 @@ esquema y reventaría en el primer `create table`.
 | `GET` | `/auth/yo` | Datos de la cuenta |
 | `GET` `POST` | `/empresas` | Listar / crear |
 | `DELETE` | `/empresas/:id` | Borrar (409 si tiene candidaturas) |
-| `GET` `POST` | `/postulaciones` | Listar (filtros + paginación) / crear |
+| `GET` `POST` | `/postulaciones` | Listar (filtros + paginación) / crear. Al crear, `estado_inicial: "guardada"` la deja como pendiente de enviar (lo usa el bot de ofertas); por defecto es `postulada` |
 | `GET` `PATCH` `DELETE` | `/postulaciones/:id` | Detalle con historial / editar / borrar |
 | `POST` | `/postulaciones/:id/eventos` | Registrar un paso del proceso |
 | `GET` | `/estadisticas` | Embudo, tiempos de respuesta, por mes |

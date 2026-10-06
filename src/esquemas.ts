@@ -76,6 +76,10 @@ export const PostulacionNueva = z
     ubicacion: z.string().trim().max(160).optional(),
     notas: z.string().max(5000).optional(),
     postulado_en: fechaIso.optional(),
+    /* 'guardada' para una oferta que todavía no se ha enviado, como las que
+       manda el bot de ofertas con /guardar. Por defecto, 'postulada': quien
+       da de alta una candidatura a mano suele hacerlo después de enviarla. */
+    estado_inicial: z.enum(['guardada', 'postulada']).optional(),
   })
   .refine((d) => Boolean(d.empresa_id) !== Boolean(d.empresa), {
     message: 'indica empresa_id o empresa, pero no ambos',

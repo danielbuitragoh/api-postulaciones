@@ -24,6 +24,21 @@ describe('alta', () => {
     expect(r.body.postulacion.estado).toBe('postulada');
   });
 
+  it('puede crearse como guardada, sin enviar todavía', async () => {
+    const r = await request(c.app).post('/postulaciones').set(yo.cabecera).send({
+      empresa: { nombre: 'Acme' }, puesto: 'Backend', estado_inicial: 'guardada',
+    });
+    expect(r.status).toBe(201);
+    expect(r.body.postulacion.estado).toBe('guardada');
+  });
+
+  it('no acepta otros estados iniciales', async () => {
+    const r = await request(c.app).post('/postulaciones').set(yo.cabecera).send({
+      empresa: { nombre: 'Acme' }, puesto: 'Backend', estado_inicial: 'oferta',
+    });
+    expect(r.status).toBe(400);
+  });
+
   it('reutiliza la empresa si ya existe, sin duplicarla', async () => {
     await crearPostulacion(c.app, yo, { empresa: { nombre: 'Acme' } });
     await crearPostulacion(c.app, yo, { empresa: { nombre: 'ACME' }, puesto: 'Otro puesto' });
