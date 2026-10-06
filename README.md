@@ -6,7 +6,7 @@
 
 [![CI](https://github.com/danielbuitragoh/api-postulaciones/actions/workflows/ci.yml/badge.svg)](https://github.com/danielbuitragoh/api-postulaciones/actions/workflows/ci.yml)
 
-[Ejemplos listos para ejecutar](docs/peticiones.http) · [Cliente web que la consume](https://github.com/danielbuitragoh/gestor-postulaciones)
+**En línea:** [`api-postulaciones.vercel.app`](https://api-postulaciones.vercel.app/salud) · [Ejemplos listos para ejecutar](docs/peticiones.http) · [Cliente web que la consume](https://github.com/danielbuitragoh/gestor-postulaciones)
 
 </div>
 
@@ -190,7 +190,7 @@ DATABASE_URL_PRUEBA=postgresql://…/postulaciones_prueba npm test
 
 ## En producción
 
-Desplegada en **Vercel** con **PostgreSQL de Neon**, las dos en plan gratuito. Allí no hay un proceso que llame a `listen`: cada petición la atiende la función de [`api/index.js`](api/index.js), que monta la misma app compilada en `dist/`, y [`vercel.json`](vercel.json) le manda todas las rutas. `src/servidor.ts` sigue siendo el arranque en local o en cualquier servidor normal (`npm run build && npm start`).
+Desplegada en **Vercel** con **PostgreSQL de Neon**, las dos en plan gratuito, en [`https://api-postulaciones.vercel.app`](https://api-postulaciones.vercel.app/salud). Allí no hay un proceso que llame a `listen`: cada petición la atiende la función de [`api/index.js`](api/index.js), que monta la misma app compilada en `dist/`, y [`vercel.json`](vercel.json) le manda todas las rutas. `src/servidor.ts` sigue siendo el arranque en local o en cualquier servidor normal (`npm run build && npm start`).
 
 Variables de entorno en Vercel:
 
@@ -201,9 +201,10 @@ Variables de entorno en Vercel:
 | `ORIGENES` | `https://danielbuitragoh.github.io`, donde vive el [gestor](https://github.com/danielbuitragoh/gestor-postulaciones) |
 | `NODE_ENV` | `produccion` |
 
-Dos cosas que salieron al desplegar:
+Tres cosas que salieron al desplegar:
 
 - **`tsc` no copia los `.sql`.** La API compilaba sin errores pero no arrancaba: buscaba las migraciones en `dist/bd/migraciones` y no estaban. En desarrollo no se notaba porque `npm run dev` ejecuta desde `src/`. Ahora `npm run build` las copia, y CI comprueba que lleguen.
+- **Vercel no acepta una carpeta de estáticos vacía.** Para que nada de `dist/` (con sus source maps) se sirva como archivo público, la salida estática es [`estaticos/`](estaticos/), que solo lleva un `robots.txt` pidiendo no indexar la API.
 - **Un fallo de conexión al arrancar tumbaba la instancia.** Las migraciones se lanzan al cargar la función, antes de que llegue ninguna petición; si la base no respondía, Node trataba ese rechazo como no capturado y mataba el proceso. Ahora el error se guarda y lo recibe cada petición.
 
 ## Licencia
