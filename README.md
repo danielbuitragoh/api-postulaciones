@@ -16,7 +16,7 @@
 
 Una API REST que registra qué candidatura enviaste, a quién, cuándo te
 contestaron y en qué acabó. Node, TypeScript, Express 5, PostgreSQL, Zod,
-Argon2id y Vitest, con 46 pruebas en verde contra PostgreSQL real, sin un solo
+Argon2id y Vitest, con 50 pruebas en verde contra PostgreSQL real, sin un solo
 mock del pool.
 
 Detrás hay decisiones de modelado y de seguridad que no se ven desde fuera pero
