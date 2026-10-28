@@ -16,7 +16,7 @@
 
 Una API REST que registra qué candidatura enviaste, a quién, cuándo te
 contestaron y en qué acabó. Node, TypeScript, Express 5, PostgreSQL, Zod,
-Argon2id y Vitest, con 50 pruebas en verde contra PostgreSQL real, sin un solo
+Argon2id y Vitest, con 51 pruebas en verde contra PostgreSQL real, sin un solo
 mock del pool.
 
 Detrás hay decisiones de modelado y de seguridad que no se ven desde fuera pero
@@ -34,10 +34,10 @@ curl -X POST localhost:3000/auth/registro -H "Content-Type: application/json" -d
 # { "acceso": "eyJhbGciOiJIUzI1NiJ9...", "usuario": { "id": "8f2c...", "nombre": "Ana" } }
 
 curl -X POST localhost:3000/postulaciones -H "Authorization: Bearer $ACCESO" -H "Content-Type: application/json" -d '{"empresa":{"nombre":"Telefonica","sector":"Telecomunicaciones"},"puesto":"Desarrollador backend junior","fuente":"linkedin","modalidad":"hibrido","ubicacion":"Madrid","salario_min":24000,"salario_max":30000}'
-# { "postulacion": { "id": "3af9...", "estado": "enviada", "puesto": "Desarrollador backend junior" } }
+# { "postulacion": { "id": "3af9...", "estado": "postulada", "puesto": "Desarrollador backend junior" } }
 
 curl localhost:3000/estadisticas -H "Authorization: Bearer $ACCESO"
-# { "embudo": { "enviada": 1, "entrevista": 0, "oferta": 0 }, "tiempo_respuesta_medio_dias": null, "sin_respuesta": 1 }
+# { "total": 1, "por_estado": { "postulada": 1 }, "por_mes": [{ "mes": "2026-10", "n": 1 }], "respuesta": { "contestadas": 0, "sin_respuesta": 1, "dias_mediana": null, "dias_media": null }, "embudo": { "postuladas": 1, "entrevistas": 0, "ofertas": 0, "rechazos": 0, "tasa_entrevista": 0, "tasa_oferta": 0 } }
 ```
 
 Mas ejemplos listos para copiar en docs/peticiones.http.
@@ -97,9 +97,10 @@ un token sin firma y exige que la API lo rechace.
 **Login sin fugas, también en el tiempo de respuesta.** Mismo mensaje para
 correo inexistente y contraseña incorrecta, que es lo que hace todo el mundo, y
 además verificación contra un hash señuelo cuando el correo no existe. Sin ese
-señuelo la respuesta vuelve en 2 ms en lugar de en 60, y el propio tiempo
-contesta la pregunta que el mensaje se negaba a contestar: un atacante enumera
-la base de usuarios con un cronómetro.
+señuelo, un correo inexistente recibiría respuesta mucho antes que uno real (el
+hash es lento a propósito), y el propio tiempo contesta la pregunta que el
+mensaje se negaba a contestar: un atacante enumera la base de usuarios con un
+cronómetro.
 
 **404 y no 403 cuando el recurso es de otro usuario.** Un 403 confirmaría que
 ese identificador existe, que es precisamente lo que no se quiere revelar.
@@ -174,18 +175,20 @@ Filtros del listado: `estado`, `empresa_id`, `desde`, `hasta`, `limite`
 ## Cómo correrlo
 
 ```bash
-cp .env.ejemplo .env          # y pon un JWT_SECRETO de verdad
 docker compose up -d          # PostgreSQL 16
 npm install
+# La app no lee .env: las variables van en el entorno del proceso (en PowerShell: $env:NOMBRE = "valor")
+export DATABASE_URL=postgresql://postulaciones:desarrollo@localhost:5432/postulaciones
+export JWT_SECRETO=un-secreto-de-al-menos-32-caracteres   # genera uno con: openssl rand -base64 48
 npm run migrar
 npm run dev
 ```
 
-Las pruebas necesitan una base de datos propia:
+Las pruebas necesitan una base de datos propia, porque vacían las tablas (`truncate`) entre casos:
 
 ```bash
-createdb postulaciones_prueba
-DATABASE_URL_PRUEBA=postgresql://…/postulaciones_prueba npm test
+docker compose exec bd createdb -U postulaciones postulaciones_prueba
+DATABASE_URL_PRUEBA=postgresql://postulaciones:desarrollo@localhost:5432/postulaciones_prueba npm test
 ```
 
 ## En producción
@@ -218,6 +221,6 @@ MIT · [Daniel Buitrago](https://github.com/danielbuitragoh)
 
 A REST API for tracking job applications, with a full event history instead of a single status column that gets overwritten, and real response-time statistics.
 
-Node, TypeScript, Express 5, PostgreSQL, Zod, Argon2id and Vitest, with 46 tests running against a real PostgreSQL database, no mocked pool. Every state change is a row in an events table that is never overwritten, so questions like how long companies take to answer, or how many of 40 applications reached an interview, actually have answers. Passwords are hashed with Argon2id at OWASP's recommended parameters, access tokens are short-lived JWTs with an explicit algorithm allowlist (there is a test that specifically tries to forge an alg none token), refresh tokens are hashed and rotated on every use, and authorization is enforced in the SQL WHERE clause, never in application code. There are eight route-by-route authorization tests, and two of them were verified by deliberately deleting the user filter and watching the suite turn red.
+Node, TypeScript, Express 5, PostgreSQL, Zod, Argon2id and Vitest, with 51 tests running against a real PostgreSQL database, no mocked pool. Every state change is a row in an events table that is never overwritten, so questions like how long companies take to answer, or how many of 40 applications reached an interview, actually have answers. Passwords are hashed with Argon2id at OWASP's recommended parameters, access tokens are short-lived JWTs with an explicit algorithm allowlist (there is a test that specifically tries to forge an alg none token), refresh tokens are hashed and rotated on every use, and authorization is enforced in the SQL WHERE clause, never in application code. There are eight route-by-route authorization tests, and two of them were verified by deliberately deleting the user filter and watching the suite turn red.
 
 Code and comments are in Spanish. Ready-to-run request examples are in docs/peticiones.http.
