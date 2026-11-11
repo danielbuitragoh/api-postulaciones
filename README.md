@@ -27,7 +27,7 @@ pantalla de otra.
 
 ## Ejemplo
 
-Ejemplos reales tomados de docs/peticiones.http, con una respuesta ilustrativa (los valores como el token o el id cambian en cada ejecucion real):
+Ejemplos reales tomados de docs/peticiones.http, con una respuesta ilustrativa (los valores como el token o el id cambian en cada ejecución real):
 
 ```bash
 curl -X POST localhost:3000/auth/registro -H "Content-Type: application/json" -d '{"email":"ana@ejemplo.com","contrasena":"una-contrasena-larga","nombre":"Ana"}'
@@ -40,7 +40,7 @@ curl localhost:3000/estadisticas -H "Authorization: Bearer $ACCESO"
 # { "total": 1, "por_estado": { "postulada": 1 }, "por_mes": [{ "mes": "2026-10", "n": 1 }], "respuesta": { "contestadas": 0, "sin_respuesta": 1, "dias_mediana": null, "dias_media": null }, "embudo": { "postuladas": 1, "entrevistas": 0, "ofertas": 0, "rechazos": 0, "tasa_entrevista": 0, "tasa_oferta": 0 } }
 ```
 
-Mas ejemplos listos para copiar en docs/peticiones.http.
+Más ejemplos listos para copiar en docs/peticiones.http.
 
 ## Lo que más me interesa que se mire
 
